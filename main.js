@@ -3,13 +3,29 @@ const descriptiontextarea = document.querySelector("#description")
 const addButton = document.querySelector('button')
 const cards = document.querySelector('.cards')
 
-const cardsArr = []
-function drawCard() {
+let cardsArr;
+
+try {
+    cardsArr = JSON.parse(localStorage.cards)
+    // проверка на массив 
+    if (!cardsArr.length) {
+        cardsArr = []
+        localStorage.cards = ''
+    }
+
+
+
+    drawCards()
+} catch {
+    cardsArr = []
+}
+
+function drawCards() {
     cards.innerHTML = ''
 
-    for (let i = 0 ; i < cardsArr.length; i++){
-        const card=cardsArr[i]
-       cards.appendChild(createCard(i, card))
+    for (let i = 0; i < cardsArr.length; i++) {
+        const card = cardsArr[i]
+        cards.appendChild(createCard(i, card))
     }
 }
 
@@ -18,14 +34,18 @@ function createCard(i, cardObj) {
     const now = new Date()
 
     const card = document.createElement('article')
-    card.className = 'card'
+    if (cardObj.solved) {
+        card.className = 'card card-solved'
+    } else {
+        card.className = 'card'
+    }
 
 
     const h2 = document.createElement('h2')
     const p = document.createElement('p')
     const small = document.createElement('small')
 
-    h2.innerHTML =cardObj.title
+    h2.innerHTML = cardObj.title
     p.innerHTML = cardObj.description
     small.innerHTML = now.toLocaleDateString() + " " + now.toLocaleDateString()
 
@@ -41,6 +61,24 @@ function createCard(i, cardObj) {
     closeicon.innerHTML = '✘'
     solveicon.innerHTML = '✓'
 
+    closeicon.addEventListener('click', () => {
+        cardsArr.splice(i, 1)
+
+        localStorage.cards = JSON.stringify(cardsArr)
+
+        drawCards()
+    })
+
+    solveicon.addEventListener('click', () => {
+        const cardTemp = cardsArr.slice(i, 1)[0]
+        cardTemp.solved = true
+        cardsArr.push(cardTemp)
+
+        localStorage.cards = JSON.stringify(cardsArr)
+
+        drawCards()
+    })
+
     icons.appendChild(closeicon)
     icons.appendChild(solveicon)
 
@@ -50,9 +88,6 @@ function createCard(i, cardObj) {
     card.appendChild(icons)
 
     return card
-
-
-
 }
 
 addButton.addEventListener('click', () => {
@@ -70,5 +105,7 @@ addButton.addEventListener('click', () => {
     titleinput.value = ''
     descriptiontextarea.value = ''
 
-    drawCard()
+    localStorage.cards = JSON.stringify(cardsArr)
+
+    drawCards()
 })
